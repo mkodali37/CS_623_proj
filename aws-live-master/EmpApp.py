@@ -26,9 +26,9 @@ def home():
     return render_template('AddEmp.html')
 
 
-@app.route("/about", methods=['POST'])
+@app.route("/about", methods=['GET','POST'])
 def about():
-    return render_template('www')
+    return render_template('About.html')
 
 
 @app.route("/addemp", methods=['POST'])
@@ -80,6 +80,31 @@ def AddEmp():
     print("all modification done...")
     return render_template('AddEmpOutput.html', name=emp_name)
 
+@app.route("/getemp", methods=['GET', 'POST'])
+def GetEmp():
+    return render_template("GetEmp.html")
+
+@app.route("/fetchdata", methods=['GET','POST'])
+def FetchData():
+    emp_id = request.form['emp_id']
+
+    output = {}
+    select_sql = "SELECT emp_id, fname, lname, pri_skill, location from employee where emp_id=%s"
+    cursor = db_conn.cursor()
+
+    cursor.execute(select_sql, (emp_id))
+    result = cursor.fetchone()
+
+    output["emp_id"] = result[0]
+    print('EVERYTHING IS FINE TILL HERE')
+    output["first_name"] = result[1]
+    output["last_name"] = result[2]
+    output["primary_skills"] = result[3]
+    output["location"] = result[4]
+    print(output["emp_id"])
+
+    return render_template("GetEmpOutput.html", id=output["emp_id"], fname=output["first_name"],
+                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
