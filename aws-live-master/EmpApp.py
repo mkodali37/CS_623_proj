@@ -72,7 +72,8 @@ def AddEmp():
                 emp_image_file_name_in_s3)
 
         except Exception as e:
-            return str(e)
+            print(e)
+            return render_template('Error1.html')
 
     finally:
         cursor.close()
