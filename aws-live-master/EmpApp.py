@@ -43,9 +43,6 @@ def AddEmp():
     insert_sql = "INSERT INTO employee VALUES (%s, %s, %s, %s, %s)"
     cursor = db_conn.cursor()
 
-    if emp_image_file.filename == "":
-        return render_template('Imageselect.html')
-
     try:
 
         cursor.execute(insert_sql, (emp_id, first_name, last_name, pri_skill, location))
@@ -90,7 +87,7 @@ def FetchEmp():
     emp_id = request.form['emp_id']
 
     output = {}
-    select_sql = "SELECT empid, fname, lname, pri_skill, location from employee where empid=%s"
+    select_sql = "SELECT emp_id, fname, lname, pri_skill, location from employee where emp_id=%s"
     cursor = db_conn.cursor()
     emp_image_file_name_in_s3 = "emp-id-" + str(emp_id) + "_image_file"
     s3 = boto3.resource('s3')
