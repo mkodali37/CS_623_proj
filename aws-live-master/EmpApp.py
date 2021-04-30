@@ -84,10 +84,13 @@ def AddEmp():
 def GetEmp():
     return render_template("GetEmp.html")
 
-@app.route("/fetchdata", methods=['GET','POST'])
-def FetchData():
+@app.route("/fetchdata", methods=['POST'])
+def FetchEmp():
     emp_id = request.form['emp_id']
 
+    output = {}
+    select_sql = "SELECT empid, fname, lname, pri_skill, location from employee where empid=%s"
+    cursor = db_conn.cursor()
     emp_image_file_name_in_s3 = "emp-id-" + str(emp_id) + "_image_file"
     s3 = boto3.resource('s3')
 
@@ -99,28 +102,33 @@ def FetchData():
     else:
         s3_location = '-' + s3_location
 
-    object_url = "https://s3{0}.amazonaws.com/{1}/{2}".format(
+    image_url = "https://s3{0}.amazonaws.com/{1}/{2}".format(
         s3_location,
         custombucket,
         emp_image_file_name_in_s3)
 
-    output = {}
-    select_sql = "SELECT emp_id, fname, lname, pri_skill, location from employee where emp_id=%s"
-    cursor = db_conn.cursor()
+    try:
+        cursor.execute(select_sql, (emp_id))
+        result = cursor.fetchone()
 
-    cursor.execute(select_sql, (emp_id))
-    result = cursor.fetchone()
+        output["emp_id"] = result[0]
+        print('EVERYTHING IS FINE TILL HERE')
+        output["first_name"] = result[1]
+        output["last_name"] = result[2]
+        output["primary_skills"] = result[3]
+        output["location"] = result[4]
+        print(output["emp_id"])
 
-    output["emp_id"] = result[0]
-    print('EVERYTHING IS FINE TILL HERE')
-    output["first_name"] = result[1]
-    output["last_name"] = result[2]
-    output["primary_skills"] = result[3]
-    output["location"] = result[4]
-    print(output["emp_id"])
 
-    return render_template("GetEmpOutput.html", id=output["emp_id"], fname=output["first_name"],
-                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"], image_url=object_url)
+
+
+
+        return render_template("GetEmpOutput.html", id=output["emp_id"], fname=output["first_name"],
+                           lname=output["last_name"], interest=output["primary_skills"], location=output["location"],image_url=image_url)
+
+    except Exception as e:
+        print(e)
+        return render_template('Error.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
